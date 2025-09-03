@@ -15,5 +15,5 @@ st.subheader("📈 Interactive Tableau Dashboard")
 
 tableau_url = "https://public.tableau.com/views/Superstore_17265530774290/Dashboard1?:showVizHome=no&:embed=true"
 
-st.components.v1.iframe(tableau_url, height=927, width=1300)
+st.components.v1.iframe(tableau_url, height=927, width=2000)
 
