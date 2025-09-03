@@ -107,6 +107,13 @@ def load_data(filename="ifood_df.csv"):
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
     return df
 
+def campaign_acceptance(df):
+    total = (df[['acceptedcmp1','acceptedcmp2','acceptedcmp3','acceptedcmp4','acceptedcmp5']].sum().sum())
+    customers = len(df)
+    rate = total / customers
+    return f"📈 Overall campaign acceptance rate is **{rate:.2f} per customer** across all campaigns."
+
+
 def generate_insights(df):
     return [
         campaign_acceptance(df),
