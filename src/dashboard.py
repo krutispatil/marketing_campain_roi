@@ -11,6 +11,7 @@ st.title("📊 Marketing Campaign ROI Dashboard")
 @st.cache_data
 def load_data():
     df = pd.read_csv("data/ifood_df.csv")
+    df.columns = [c.strip().lower() for c in df.columns]
     return df
 
 df = load_data()
