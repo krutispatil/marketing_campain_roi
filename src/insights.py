@@ -90,13 +90,18 @@ def load_data(path="ifood_df.csv"):
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
     return df
 
+def generate_insights(df):
+    return [
+        campaign_acceptance(df),
+        income_vs_spending(df),
+        age_group_responsiveness(df),
+        recency_vs_engagement(df),
+        channel_effectiveness(df)
+    ]
+
 
 # --- Main Execution ---
 if __name__ == "__main__":
     df = load_data()
-
-    print(age_group_responsiveness(df))
-    print(spending_by_education(df))
-    print(responsiveness_by_marital_status(df))
-    print(top_product_category(df))
-    print(loyalty_segment(df))
+    for insight in generate_insights(df):
+        print(insight)
