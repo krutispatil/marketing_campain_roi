@@ -2,6 +2,7 @@ import streamlit as st
 from insights import load_data, generate_insights
 
 st.title("📊 Marketing Campaign ROI Insights")
+st.set_page_config(layout="wide")
 
 df = load_data()
 
