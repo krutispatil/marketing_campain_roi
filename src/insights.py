@@ -38,18 +38,6 @@ def spending_by_education(df):
     return f"🎓 Customers with **{top['education']}** education spend the most, averaging {top['avg_spending']:.0f} units."
 
 
-# --- 3. Responsiveness by Marital Status ---
-def responsiveness_by_marital_status(df):
-    q = """
-    SELECT marital_status, 
-           AVG(acceptedcmp1 + acceptedcmp2 + acceptedcmp3 + acceptedcmp4 + acceptedcmp5) AS avg_campaigns_accepted
-    FROM df
-    GROUP BY marital_status;
-    """
-    result = run_sql(df, q)
-    top = result.sort_values("avg_campaigns_accepted", ascending=False).iloc[0]
-    return f"💍 Customers who are **{top['marital_status']}** respond best to campaigns, with an average acceptance rate of {top['avg_campaigns_accepted']:.2f}."
-
 
 # --- 4. Top Product Category ---
 def top_product_category(df):
@@ -155,7 +143,6 @@ def generate_insights(df):
         channel_effectiveness(df),
         loyalty_segment(df),
         top_product_category(df),
-        responsiveness_by_marital_status(df)
     ]
 
 
