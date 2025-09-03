@@ -85,11 +85,15 @@ def loyalty_segment(df):
     top = result.sort_values("customers", ascending=False).iloc[0]
     return f"📊 The largest customer segment is **{top['loyalty_segment']}**, with {top['customers']} customers."
 
+def load_data(path="ifood_df.csv"):
+    df = pd.read_csv(path)
+    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    return df
+
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    df = pd.read_csv("ifood_df.csv")
-    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    df = load_data()
 
     print(age_group_responsiveness(df))
     print(spending_by_education(df))
