@@ -130,6 +130,21 @@ def recency_vs_engagement(df):
     best = result.sort_values("avg_campaigns_accepted", ascending=False).iloc[0]
     return f"⏳ Customers with **{best['recency_group']}** since last purchase engage most, accepting {best['avg_campaigns_accepted']:.2f} campaigns on average."
 
+def channel_effectiveness(df):
+    q = """
+    SELECT 
+        AVG(numwebvisitsmonth) AS avg_web_visits,
+        AVG(numwebpurchases) AS avg_web_purchases,
+        AVG(numcatalogpurchases) AS avg_catalog_purchases,
+        AVG(numstorepurchases) AS avg_store_purchases
+    FROM df;
+    """
+    result = run_sql(df, q)
+    row = result.iloc[0].to_dict()
+    top_channel = max(row, key=row.get)
+    return f"📢 The most effective channel is **{top_channel.replace('avg_', '').replace('_', ' ').title()}**, with an average of {row[top_channel]:.1f} interactions per customer."
+
+
 
 
 def generate_insights(df):
