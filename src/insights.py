@@ -41,7 +41,7 @@ def spending_by_education(df):
 # --- 3. Responsiveness by Marital Status ---
 def responsiveness_by_marital_status(df):
     q = """
-    SELECT marital, 
+    SELECT marital_status, 
            AVG(acceptedcmp1 + acceptedcmp2 + acceptedcmp3 + acceptedcmp4 + acceptedcmp5) AS avg_campaigns_accepted
     FROM df
     GROUP BY marital_status;
