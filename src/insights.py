@@ -113,6 +113,24 @@ def campaign_acceptance(df):
     rate = total / customers
     return f"📈 Overall campaign acceptance rate is **{rate:.2f} per customer** across all campaigns."
 
+def recency_vs_engagement(df):
+    q = """
+    SELECT 
+        CASE 
+            WHEN recency <= 30 THEN 'Last Month'
+            WHEN recency BETWEEN 31 AND 90 THEN '1-3 Months'
+            WHEN recency BETWEEN 91 AND 180 THEN '3-6 Months'
+            ELSE '6+ Months'
+        END AS recency_group,
+        AVG(acceptedcmp1 + acceptedcmp2 + acceptedcmp3 + acceptedcmp4 + acceptedcmp5) AS avg_campaigns_accepted
+    FROM df
+    GROUP BY recency_group;
+    """
+    result = run_sql(df, q)
+    best = result.sort_values("avg_campaigns_accepted", ascending=False).iloc[0]
+    return f"⏳ Customers with **{best['recency_group']}** since last purchase engage most, accepting {best['avg_campaigns_accepted']:.2f} campaigns on average."
+
+
 
 def generate_insights(df):
     return [
