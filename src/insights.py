@@ -87,9 +87,22 @@ def loyalty_segment(df):
     return f"📊 The largest customer segment is **{top['loyalty_segment']}**, with {top['customers']} customers."
 
 def load_data(filename="ifood_df.csv"):
-    # Get absolute path to CSV in the same folder as insights.py
     base_path = os.path.dirname(__file__)
-    path = os.path.join(base_path, filename)
+    
+    # First: look in src/
+    path1 = os.path.join(base_path, filename)
+    
+    # Second: look in project root
+    path2 = os.path.join(base_path, "..", filename)
+
+    if os.path.exists(path1):
+        path = path1
+    elif os.path.exists(path2):
+        path = path2
+    else:
+        raise FileNotFoundError(f"❌ Could not find {filename} in {path1} or {path2}")
+    
+    print("✅ Loading CSV from:", os.path.abspath(path))
     df = pd.read_csv(path)
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
     return df
