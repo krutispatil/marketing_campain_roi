@@ -2,7 +2,7 @@ import pandas as pd
 import pandasql as psql
 
 # Load & clean dataset
-def load_data(path="data/ifood_df.csv"):
+def load_data(path="../data/ifood_df.csv"): 
     df = pd.read_csv(path)
     df.columns = [c.strip().lower() for c in df.columns]  # normalize col names
     return df
