@@ -12,5 +12,6 @@ for insight in generate_insights(df):
 
 # Embed Tableau
 st.subheader("📈 Interactive Tableau Dashboard")
-tableau_url = "https://public.tableau.com/views/Superstore_17265530774290/Dashboard1?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link:embed=true"
+tableau_url = "https://public.tableau.com/views/Superstore_17265530774290/Dashboard1?:language=en-US&:display_count=n&:origin=viz_share_link&:embed=true"
+
 st.components.v1.iframe(tableau_url, width=1200, height=800)
