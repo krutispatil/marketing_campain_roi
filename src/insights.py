@@ -117,10 +117,12 @@ def campaign_acceptance(df):
 def generate_insights(df):
     return [
         campaign_acceptance(df),
-        income_vs_spending(df),
         age_group_responsiveness(df),
         recency_vs_engagement(df),
-        channel_effectiveness(df)
+        channel_effectiveness(df),
+        loyalty_segment(df),
+        top_product_category(df),
+        responsiveness_by_marital_status(df)
     ]
 
 
