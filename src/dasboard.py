@@ -1,31 +1,19 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from sqlalchemy import create_engine
-import pymysql
-import pandasql as psql   # 👈 allows SQL on CSV
+import pandasql as psql   # SQL engine for pandas
 
 st.set_page_config(page_title="Marketing Campaign ROI", layout="wide")
 
 st.title("📊 Marketing Campaign ROI Dashboard")
 
-# --- DATA LOADING FUNCTION ---
+# --- DATA LOADING ---
 @st.cache_data
 def load_data():
-    try:
-        # Try MySQL connection first
-        engine = create_engine("mysql+pymysql://root:password@localhost/marketing_db")
-        df = pd.read_sql("SELECT * FROM customers", engine)
-        st.success("✅ Loaded data from MySQL database")
-        source = "mysql"
-    except Exception as e:
-        # Fallback to CSV
-        st.warning(f"⚠️ MySQL not available. Using CSV instead.\nError: {e}")
-        df = pd.read_csv("data/ifood_df.csv")
-        source = "csv"
-    return df, source
+    df = pd.read_csv("data/ifood_df.csv")
+    return df
 
-df, source = load_data()
+df = load_data()
 
 # --- FILTERS ---
 with st.sidebar:
@@ -70,18 +58,26 @@ campaign_acceptance.plot(kind="bar", ax=ax2, color="green")
 ax2.set_ylabel("Number of Customers Accepted")
 st.pyplot(fig2)
 
-# --- SQL MODE (if using CSV) ---
-if source == "csv":
-    st.subheader("🔎 Run SQL Queries on CSV Data")
+# --- SQL INTERFACE ON CSV ---
+st.subheader("🔎 Run SQL Queries on the Data")
 
-    default_query = "SELECT income, AVG(mntwines + mntmeatproducts + mntgoldprods) AS avg_spent FROM df GROUP BY income LIMIT 10;"
-    query = st.text_area("Enter SQL query:", default_query, height=100)
+default_query = """
+SELECT 
+    income, 
+    AVG(mntwines + mntmeatproducts + mntgoldprods) AS avg_spent 
+FROM df 
+GROUP BY income 
+ORDER BY avg_spent DESC 
+LIMIT 10;
+"""
 
-    if st.button("Run Query"):
-        try:
-            result = psql.sqldf(query, locals())
-            st.dataframe(result)
-        except Exception as e:
-            st.error(f"SQL Error: {e}")
+query = st.text_area("Enter SQL query:", default_query, height=120)
+
+if st.button("Run Query"):
+    try:
+        result = psql.sqldf(query, locals())
+        st.dataframe(result)
+    except Exception as e:
+        st.error(f"SQL Error: {e}")
 
 st.caption("💡 Data Source: iFood Marketing Campaign Dataset")
