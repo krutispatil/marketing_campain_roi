@@ -1,5 +1,6 @@
 import pandas as pd
 import sqlite3
+import os
 
 # --- Utility to run SQL on Pandas dataframe ---
 def run_sql(df, query):
@@ -85,8 +86,11 @@ def loyalty_segment(df):
     top = result.sort_values("customers", ascending=False).iloc[0]
     return f"📊 The largest customer segment is **{top['loyalty_segment']}**, with {top['customers']} customers."
 
-def load_data():
-    df = pd.read_csv("ifood_df.csv")
+def load_data(filename="ifood_df.csv"):
+    # Get absolute path to CSV in the same folder as insights.py
+    base_path = os.path.dirname(__file__)
+    path = os.path.join(base_path, filename)
+    df = pd.read_csv(path)
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
     return df
 
