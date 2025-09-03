@@ -44,11 +44,11 @@ def responsiveness_by_marital_status(df):
     SELECT marital, 
            AVG(acceptedcmp1 + acceptedcmp2 + acceptedcmp3 + acceptedcmp4 + acceptedcmp5) AS avg_campaigns_accepted
     FROM df
-    GROUP BY marital;
+    GROUP BY marital_status;
     """
     result = run_sql(df, q)
     top = result.sort_values("avg_campaigns_accepted", ascending=False).iloc[0]
-    return f"💍 Customers who are **{top['marital']}** respond best to campaigns, with an average acceptance rate of {top['avg_campaigns_accepted']:.2f}."
+    return f"💍 Customers who are **{top['marital_status']}** respond best to campaigns, with an average acceptance rate of {top['avg_campaigns_accepted']:.2f}."
 
 
 # --- 4. Top Product Category ---
