@@ -41,8 +41,8 @@ def age_group_responsiveness(df):
     q = """
     SELECT 
         CASE 
-            WHEN (2025 - year_birth) < 30 THEN 'Under 30'
-            WHEN (2025 - year_birth) BETWEEN 30 AND 50 THEN '30-50'
+            WHEN age < 30 THEN 'Under 30'
+            WHEN age BETWEEN 30 AND 50 THEN '30-50'
             ELSE '50+' 
         END AS age_group,
         AVG(acceptedcmp1 + acceptedcmp2 + acceptedcmp3 + acceptedcmp4 + acceptedcmp5) AS avg_campaigns_accepted
@@ -52,7 +52,6 @@ def age_group_responsiveness(df):
     result = run_sql(df, q)
     best_group = result.sort_values("avg_campaigns_accepted", ascending=False).iloc[0]
     return f"👥 Customers aged **{best_group['age_group']}** are the most responsive, accepting more campaigns on average than other groups."
-
 # 4. Recency vs Engagement
 def recency_vs_engagement(df):
     q = """
