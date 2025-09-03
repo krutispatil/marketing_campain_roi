@@ -1,42 +1,13 @@
 import pandas as pd
-import pandasql as psql
+import sqlite3
 
-# Load & clean dataset
-def load_data(path="../data/ifood_df.csv"): 
-    df = pd.read_csv(path)
-    df.columns = [c.strip().lower() for c in df.columns]  # normalize col names
-    return df
-
-# Run SQL queries
+# --- Utility to run SQL on Pandas dataframe ---
 def run_sql(df, query):
-    return psql.sqldf(query, locals())
+    with sqlite3.connect(":memory:") as conn:
+        df.to_sql("df", conn, index=False, if_exists="replace")
+        return pd.read_sql(query, conn)
 
-# 1. Campaign Acceptance Rate
-def campaign_acceptance(df):
-    q = """
-    SELECT 
-        (CAST(SUM(acceptedcmp1 + acceptedcmp2 + acceptedcmp3 + acceptedcmp4 + acceptedcmp5) AS FLOAT) 
-        / (COUNT(*) * 5)) * 100 AS acceptance_rate
-    FROM df;
-    """
-    result = run_sql(df, q).iloc[0, 0]
-    return f"✅ Overall campaign acceptance rate is **{result:.1f}%**. Most customers were hard to convert, suggesting sharper targeting is needed."
-
-# 2. Income vs Spending
-def income_vs_spending(df):
-    q = """
-    SELECT 
-        CASE WHEN income >= 60000 THEN 'High Income' ELSE 'Low Income' END AS income_group,
-        AVG(mntwines + mntmeatproducts + mntgoldprods + mntfishproducts + mntsweetproducts) AS avg_spent
-    FROM df
-    GROUP BY income_group;
-    """
-    result = run_sql(df, q)
-    hi = result[result['income_group'] == 'High Income']['avg_spent'].values[0]
-    lo = result[result['income_group'] == 'Low Income']['avg_spent'].values[0]
-    return f"💰 High-income customers spend **${hi:.0f}** on average vs **${lo:.0f}** for low-income. Campaigns should target high-income for premium products."
-
-# 3. Age Group Responsiveness
+# --- 1. Campaign Responsiveness by Age Group ---
 def age_group_responsiveness(df):
     q = """
     SELECT 
@@ -52,43 +23,76 @@ def age_group_responsiveness(df):
     result = run_sql(df, q)
     best_group = result.sort_values("avg_campaigns_accepted", ascending=False).iloc[0]
     return f"👥 Customers aged **{best_group['age_group']}** are the most responsive, accepting more campaigns on average than other groups."
-# 4. Recency vs Engagement
-def recency_vs_engagement(df):
+
+
+# --- 2. Spending by Education Level ---
+def spending_by_education(df):
+    q = """
+    SELECT education, AVG(mnttotal) AS avg_spending
+    FROM df
+    GROUP BY education;
+    """
+    result = run_sql(df, q)
+    top = result.sort_values("avg_spending", ascending=False).iloc[0]
+    return f"🎓 Customers with **{top['education']}** education spend the most, averaging {top['avg_spending']:.0f} units."
+
+
+# --- 3. Responsiveness by Marital Status ---
+def responsiveness_by_marital_status(df):
+    q = """
+    SELECT marital, 
+           AVG(acceptedcmp1 + acceptedcmp2 + acceptedcmp3 + acceptedcmp4 + acceptedcmp5) AS avg_campaigns_accepted
+    FROM df
+    GROUP BY marital;
+    """
+    result = run_sql(df, q)
+    top = result.sort_values("avg_campaigns_accepted", ascending=False).iloc[0]
+    return f"💍 Customers who are **{top['marital']}** respond best to campaigns, with an average acceptance rate of {top['avg_campaigns_accepted']:.2f}."
+
+
+# --- 4. Top Product Category ---
+def top_product_category(df):
+    q = """
+    SELECT 
+        AVG(mntwines) AS avg_wines,
+        AVG(mntfruits) AS avg_fruits,
+        AVG(mntmeatproducts) AS avg_meat,
+        AVG(mntfishproducts) AS avg_fish,
+        AVG(mntsweetproducts) AS avg_sweets,
+        AVG(mntgoldprods) AS avg_gold
+    FROM df;
+    """
+    result = run_sql(df, q)
+    row = result.iloc[0].to_dict()
+    top_cat = max(row, key=row.get)
+    return f"🍷 The most purchased category is **{top_cat.replace('avg_', '').title()}**, averaging {row[top_cat]:.0f} units per customer."
+
+
+# --- 5. Loyalty Segments ---
+def loyalty_segment(df):
     q = """
     SELECT 
         CASE 
-            WHEN recency <= 30 THEN 'Active Recently'
-            WHEN recency BETWEEN 31 AND 90 THEN 'Moderately Active'
-            ELSE 'Dormant'
-        END AS activity_segment,
-        AVG(acceptedcmp1 + acceptedcmp2 + acceptedcmp3 + acceptedcmp4 + acceptedcmp5) AS avg_accepted
+            WHEN acceptedcmpoverall >= 3 THEN 'Loyal'
+            WHEN acceptedcmpoverall = 2 THEN 'Moderately Loyal'
+            ELSE 'Low Loyalty'
+        END AS loyalty_segment,
+        COUNT(*) AS customers
     FROM df
-    GROUP BY activity_segment;
+    GROUP BY loyalty_segment;
     """
     result = run_sql(df, q)
-    active = result[result['activity_segment'] == 'Active Recently']['avg_accepted'].values[0]
-    dormant = result[result['activity_segment'] == 'Dormant']['avg_accepted'].values[0]
-    return f"⏳ Recently active customers accept **{active:.2f} campaigns** on average vs only **{dormant:.2f}** for dormant customers. Retarget recent buyers!"
+    top = result.sort_values("customers", ascending=False).iloc[0]
+    return f"📊 The largest customer segment is **{top['loyalty_segment']}**, with {top['customers']} customers."
 
-# 5. Channel Effectiveness
-def channel_effectiveness(df):
-    q = """
-    SELECT 
-        AVG(numwebpurchases) AS avg_web,
-        AVG(numcatalogpurchases) AS avg_catalog,
-        AVG(numstorepurchases) AS avg_store
-    FROM df;
-    """
-    result = run_sql(df, q).iloc[0]
-    return f"🌐 Customers buy mostly online (**{result['avg_web']:.1f} avg purchases**) while catalogs underperform (**{result['avg_catalog']:.1f}**). Shift campaigns toward digital channels."
-    
 
-# Collect all insights
-def generate_insights(df):
-    return [
-        campaign_acceptance(df),
-        income_vs_spending(df),
-        age_group_responsiveness(df),
-        recency_vs_engagement(df),
-        channel_effectiveness(df)
-    ]
+# --- Main Execution ---
+if __name__ == "__main__":
+    df = pd.read_csv("ifood_df.csv")
+    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+
+    print(age_group_responsiveness(df))
+    print(spending_by_education(df))
+    print(responsiveness_by_marital_status(df))
+    print(top_product_category(df))
+    print(loyalty_segment(df))
